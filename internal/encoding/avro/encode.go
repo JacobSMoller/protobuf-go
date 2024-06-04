@@ -116,7 +116,7 @@ func (e *Encoder) WriteString(s string) {
 
 // WriteFloat writes a Float to the Writer.
 func (e *Encoder) WriteFloat(f float32) {
-	// Write the index of union type, assuming that the 0-index is the null value
+	// Write the index of union type, assuming that the 0-index is the null value.
 	e.writeByte(0x02)
 
 	b := make([]byte, 4)

@@ -148,16 +148,17 @@ func (e *Encoder) WriteBytes(b []byte) {
 	e.out = append(e.out, b...)
 }
 
-// WriteBytes writes the binary avro encoding of the given bytes.
-func (e *Encoder) WriteArrayLen(i int64) {
+// StartBlock writes the start of a block e.g. a map or array the start of  block is indicated by the byte 2(1 in zigzag encoding).
+// To select the actual type of the block rather than null from the union type. Followed by the size of the block.
+func (e *Encoder) StartBlock(i int64) {
 	// Write the index of union type, assuming that the 0-index is the null value
 	e.writeByte(0x02)
 
 	e.writeLong(i)
 }
 
-// WriteBytes writes the binary avro encoding of the given bytes.
-func (e *Encoder) WriteArrayEnd() {
+// EndBlock writes a 0 byte to indicate the end of a block.
+func (e *Encoder) EndBlock() {
 	e.writeByte(0x00)
 }
 

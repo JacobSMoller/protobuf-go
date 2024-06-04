@@ -330,27 +330,26 @@ func (e encoder) marshalSingular(val protoreflect.Value, fd protoreflect.FieldDe
 
 // marshalList marshals the given protoreflect.List.
 func (e encoder) marshalList(list protoreflect.List, fd protoreflect.FieldDescriptor) error {
-	// TODO list.Len() returns zero for both 0 length and nil list
-	// Avro doesn't have any distinction between empty list and nil it just depends on the schema
+	// If list is empty just write an empty array
 	if list.Len() == 0 {
-		e.WriteArrayEnd()
+		e.EndBlock()
 		return nil
 	}
-	e.WriteArrayLen(int64(list.Len()))
+	e.StartBlock(int64(list.Len()))
 	for i := 0; i < list.Len(); i++ {
 		item := list.Get(i)
 		if err := e.marshalSingular(item, fd); err != nil {
 			return err
 		}
 	}
-	e.WriteArrayEnd()
+	e.EndBlock()
 	return nil
 }
 
 // marshalMap marshals given protoreflect.Map.
 func (e encoder) marshalMap(mmap protoreflect.Map, fd protoreflect.FieldDescriptor) error {
 	var err error
-	e.WriteArrayLen(int64(mmap.Len()))
+	e.StartBlock(int64(mmap.Len()))
 	order.RangeEntries(mmap, order.AnyKeyOrder, func(k protoreflect.MapKey, v protoreflect.Value) bool {
 		e.WriteName(k.String())
 		if err = e.marshalSingular(v, fd.MapValue()); err != nil {
@@ -358,6 +357,6 @@ func (e encoder) marshalMap(mmap protoreflect.Map, fd protoreflect.FieldDescript
 		}
 		return true
 	})
-	e.WriteArrayEnd()
+	e.EndBlock()
 	return err
 }

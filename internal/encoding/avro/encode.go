@@ -152,9 +152,13 @@ func (e *Encoder) WriteBytes(b []byte) {
 // To select the actual type of the block rather than null from the union type. Followed by the size of the block.
 func (e *Encoder) StartBlock(i int64) {
 	// Write the index of union type, assuming that the 0-index is the null value
-	e.writeByte(0x02)
 
-	e.writeLong(i)
+	e.writeByte(0x02)
+	// if the map or list is empty don't write anything the endblock 0 byte will still be
+	// written to indicate the end of the block and we will get an empty map or list in the resulting avro.
+	if i > 0 {
+		e.writeLong(i)
+	}
 }
 
 // EndBlock writes a 0 byte to indicate the end of a block.
@@ -169,4 +173,14 @@ func (e *Encoder) WriteName(s string) {
 
 	// Write the bytes of the string
 	e.out = append(e.out, s...)
+}
+
+// WriteRecordUnionIndex writes the index of the union type for a non null record.
+func (e *Encoder) WriteRecordUnionIndex() {
+	e.writeByte(0x02)
+}
+
+func (e *Encoder) WktAsScalar() {
+	// remove the union type index writen for the WKT message type to just treat it as a nullable scalar
+	e.out = e.out[:len(e.out)-1]
 }

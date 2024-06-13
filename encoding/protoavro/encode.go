@@ -242,9 +242,9 @@ func (e encoder) marshalMessage(m protoreflect.Message, typeURL string) error {
 		return errors.New("no support for proto1 MessageSets")
 	}
 
-	// if marshal := wellKnownTypeMarshaler(m.Descriptor().FullName()); marshal != nil {
-	// 	return marshal(e, m)
-	// }
+	if marshal := wellKnownTypeMarshaler(m.Descriptor().FullName()); marshal != nil {
+		return marshal(e, m)
+	}
 
 	var fields order.FieldRanger
 	fields = allFieldRanger{Message: m, skipNull: false}
@@ -318,6 +318,7 @@ func (e encoder) marshalSingular(val protoreflect.Value, fd protoreflect.FieldDe
 		}
 
 	case protoreflect.MessageKind, protoreflect.GroupKind:
+		e.WriteRecordUnionIndex()
 		if err := e.marshalMessage(val.Message(), ""); err != nil {
 			return err
 		}
@@ -328,13 +329,9 @@ func (e encoder) marshalSingular(val protoreflect.Value, fd protoreflect.FieldDe
 	return nil
 }
 
+// TODO implement block size defaulting to 100 for the 2 functions below
 // marshalList marshals the given protoreflect.List.
 func (e encoder) marshalList(list protoreflect.List, fd protoreflect.FieldDescriptor) error {
-	// If list is empty just write an empty array
-	if list.Len() == 0 {
-		e.EndBlock()
-		return nil
-	}
 	e.StartBlock(int64(list.Len()))
 	for i := 0; i < list.Len(); i++ {
 		item := list.Get(i)

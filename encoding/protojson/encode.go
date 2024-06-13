@@ -209,6 +209,7 @@ type unpopulatedFieldRanger struct {
 
 func (m unpopulatedFieldRanger) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 	fds := m.Descriptor().Fields()
+	fmt.Println(fds)
 	for i := 0; i < fds.Len(); i++ {
 		fd := fds.Get(i)
 		if m.Has(fd) || fd.ContainingOneof() != nil {
@@ -290,6 +291,7 @@ func (e encoder) marshalValue(val protoreflect.Value, fd protoreflect.FieldDescr
 // marshalSingular marshals the given non-repeated field value. This includes
 // all scalar types, enums, messages, and groups.
 func (e encoder) marshalSingular(val protoreflect.Value, fd protoreflect.FieldDescriptor) error {
+	fmt.Println(fd.FullName(), val)
 	if !val.IsValid() {
 		e.WriteNull()
 		return nil
